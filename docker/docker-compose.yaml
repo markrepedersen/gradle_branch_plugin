@@ -1,0 +1,7 @@
+version: "3.8"
+services:
+  dev:
+    image: cpp_dev
+    build: .
+    volumes:
+      - "../:/usr/slack_assessment/"
