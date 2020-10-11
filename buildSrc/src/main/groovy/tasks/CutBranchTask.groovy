@@ -6,6 +6,8 @@ import org.gradle.api.tasks.TaskAction
 import utils.GitUtils
 
 class CutBranchTask extends DefaultTask {
+    private static final BASE_BRANCH = "master"
+
     @Input
     protected String username = project.property(GitUtils.GITHUB_USERNAME_KEY)
 
@@ -14,6 +16,6 @@ class CutBranchTask extends DefaultTask {
 
     @TaskAction
     void run() {
-        GitUtils.createBranch("master", "test_branch1", username, token)
+        GitUtils.createBranch(BASE_BRANCH, "test_branch1", username, token)
     }
 }

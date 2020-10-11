@@ -31,6 +31,11 @@ class GenerateFFDiffTask extends DefaultTask {
         File featureFlagFile = project.file(FF_FILE)
         Map releases = ReleaseUtils.getPreviousRecord(releaseInfo, plist)
         String branch = "${releases.prev_name}/${releases.prev_version}"
+
+        if (!GitUtils.hasRemoteBranch(branch)) {
+            throw new GradleException("Branch '$branch' does not exist.")
+        }
+
         String content = GitUtils.getContents(FF_FILE, branch, username, token)
 
         if (content) {

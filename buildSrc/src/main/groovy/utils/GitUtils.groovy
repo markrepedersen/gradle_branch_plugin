@@ -10,10 +10,8 @@ class GitUtils {
     static final String GITHUB_USERNAME_KEY = "github_username"
     static final String GITHUB_TOKEN_KEY = "github_token"
     private static final String API_BASE_URL = "https://api.github.com"
-//    private static final String OWNER = "SlackRecruiting"
-    private static final String OWNER = "markrepedersen"
-//    private static final String REPO = "br-code-exercise-170536289"
-    private static final String REPO = "netparser"
+    private static final String OWNER = "SlackRecruiting"
+    private static final String REPO = "br-code-exercise-170536289"
 
     /**
      * Creates a branch named {@param newBranch} from the revision at the head of {@param fromBranch}.
@@ -24,13 +22,12 @@ class GitUtils {
      * @param token
      */
     static void createBranch(String fromBranch, String newBranch, String username, String token) throws Exception {
+        String url = "$API_BASE_URL/repos/$OWNER/$REPO/git/refs"
         String hash = getRef(fromBranch, username, token)
 
         if (hash) {
-            String url = "$API_BASE_URL/repos/$OWNER/$REPO/git/refs"
-
             try {
-                String response = sendRequest(url, "POST", [
+                sendRequest(url, "POST", [
                         username: username,
                         token   : token,
                         headers : ["Content-Type": "application/json"],
@@ -50,10 +47,35 @@ class GitUtils {
             JsonSlurper slurper = new JsonSlurper()
             Object json = slurper.parseText(hash)
 
-            return json?.object?.sha
+            json?.object?.sha
         } catch (Exception e) {
             throw new GradleException("There was a problem getting the ref.", e)
         }
+    }
+
+    /**
+     * Checks that the remote branch actually exists.
+     */
+    static boolean hasRemoteBranch(String branch, String username, String token) {
+        String url = "$API_BASE_URL/repos/$OWNER/$REPO/git/ref/heads/$branch"
+
+        try {
+            sendRequest(
+                    url,
+                    "GET",
+                    [
+                            username: username,
+                            token   : token,
+                            headers : ["Accept": "application/vnd.github.v3.raw"]
+                    ]
+            )
+
+            true
+        } catch (Exception e) {
+            System.err.println("No remote branch found due to invalid response: $e")
+            false
+        }
+
     }
 
     /**
@@ -62,8 +84,7 @@ class GitUtils {
      * @throws Exception
      */
     static String getContents(String path, String branch, String username, String token) {
-        //String url = "$API_BASE_URL/repos/$OWNER/$REPO/contents/$path?ref=$branch"
-        String url = "$API_BASE_URL/repos/$OWNER/$REPO/contents/$path"
+        String url = "$API_BASE_URL/repos/$OWNER/$REPO/contents/$path?ref=$branch"
 
         try {
             return sendRequest(
@@ -94,7 +115,7 @@ class GitUtils {
      * @param method
      * @param options
      */
-    private static String sendRequest(String url, String method, Map options = [:]) {
+    private static HttpsURLConnection sendRequest(String url, String method, Map options = [:]) {
         HttpsURLConnection conn = (HttpsURLConnection) url
                 .toURL()
                 .openConnection()
@@ -120,6 +141,10 @@ class GitUtils {
             }
         }
 
-        conn.inputStream.text
+        if (conn.responseCode < 200 || conn.responseCode > 299) {
+            throw new Error("Request returned with code '${conn.responseCode}': ${conn.responseMessage}.")
+        }
+
+        conn
     }
 }
