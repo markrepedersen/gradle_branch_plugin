@@ -1,5 +1,19 @@
 # Ignore Gradle project-specific cache directory
 .gradle
 
+# Ignore annoying IntelliJ stuff
+.classpath
+.project
+.settings
+.idea
+
 # Ignore Gradle build output directory
 build
+
+# Ignore updated resource files from testing changes
+release.plist
+featureflags/
+releng/
+
+# Ignore file containing test credentials, GitHub API token, etc
+gradle.properties
