@@ -2,8 +2,8 @@
 .gradle
 
 # Ignore annoying IntelliJ stuff
-.classpath
-.project
+release-tools/.classpath
+release-tools/.project
 .settings
 .idea
 
@@ -16,4 +16,4 @@ featureflags/
 releng/
 
 # Ignore file containing test credentials, GitHub API token, etc
-gradle.properties
+release-tools/gradle.properties

@@ -13,10 +13,10 @@ import utils.ReleaseUtils
 import java.nio.charset.Charset
 
 class GenerateFFDiffTask extends DefaultTask {
-    private static final String PLIST_FILE = "release.plist"
-    private static final String CSV_FILE = "releng/release_info.csv"
-    private static final String FF_FILE = "featureflags/FF.csv"
-    private static final String FF_DIFF_FILE = "featureflags/FF_diff.csv"
+    private static final String PLIST_FILE = "../release.plist"
+    private static final String CSV_FILE = "../releng/release_info.csv"
+    private static final String FF_FILE = "../featureflags/FF.csv"
+    private static final String FF_DIFF_FILE = "../featureflags/FF_diff.csv"
 
     @Input
     protected String username = project.property(GitUtils.GITHUB_USERNAME_KEY)

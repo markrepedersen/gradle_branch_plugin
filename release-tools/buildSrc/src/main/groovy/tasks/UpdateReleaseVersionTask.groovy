@@ -7,8 +7,8 @@ import utils.ReleaseUtils
 import xmlwise.XmlParseException
 
 class UpdateReleaseVersionTask extends DefaultTask {
-    private static final String PLIST_FILE = "release.plist"
-    private static final String CSV_FILE = "releng/release_info.csv"
+    private static final String PLIST_FILE = "../release.plist"
+    private static final String CSV_FILE = "../releng/release_info.csv"
 
     /**
      * Reads the current release (name, version) and replaces it with the next one.
