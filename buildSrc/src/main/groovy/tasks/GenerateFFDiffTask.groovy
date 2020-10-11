@@ -32,7 +32,7 @@ class GenerateFFDiffTask extends DefaultTask {
         Map releases = ReleaseUtils.getPreviousRecord(releaseInfo, plist)
         String branch = "${releases.prev_name}/${releases.prev_version}"
 
-        if (!GitUtils.hasRemoteBranch(branch)) {
+        if (!GitUtils.hasRemoteBranch(branch, username, token)) {
             throw new GradleException("Branch '$branch' does not exist.")
         }
 
