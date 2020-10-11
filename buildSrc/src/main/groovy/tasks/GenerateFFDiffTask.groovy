@@ -53,6 +53,7 @@ class GenerateFFDiffTask extends DefaultTask {
 
     /**
      * Runs a set difference function to find the differences between the two CSV files.
+     * The set differences are then written to {@code FF_DIFF_FILE} in the form of a CSV file.
      * @param current
      * @param previous
      * @param info

@@ -1,7 +1,8 @@
 version: "3.8"
 services:
   dev:
-    image: cpp_dev
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     volumes:
       - "../:/usr/slack_assessment/"

@@ -14,5 +14,6 @@ class CutBranchTask extends DefaultTask {
 
     @TaskAction
     void run() {
+        GitUtils.createBranch("master", "test_branch1", username, token)
     }
 }
