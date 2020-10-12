@@ -2,7 +2,8 @@
   Since the requirements state that this must be able to run on MacOS (I'm using Linux on my development machine), I decided to containerize the project using Docker, since I didn't want to worry about possible environment issues for anyone who wants to run this.
   Project dependencies are downloaded using Gradle, which also handles running the tasks which form the meat of this assignment.
 * Configuration
-  There are three Gradle tasks: *cutBranch*, *updateReleaseVersion*, and *generateFFDiff*. Running with '--stacktrace' will print a stacktrace for the error.
+  There are four Gradle tasks: *codeFreeze*, *cutBranch*, *updateReleaseVersion*, and *generateFFDiff*. *codeFreeze* is a task that runs (first cutBranch, followed by generateFFDiff, followed by updateReleaseVersion) all of these when an actual code freeze would be performed.
+  Running with '--stacktrace' will print a stacktrace for the error.
   Each of them can be run using:
 
 #+begin_src bash
