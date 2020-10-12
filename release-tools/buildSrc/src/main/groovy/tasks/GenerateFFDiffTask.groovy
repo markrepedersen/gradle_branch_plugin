@@ -16,7 +16,8 @@ import java.nio.charset.Charset
 class GenerateFFDiffTask extends DefaultTask {
     private static final String PLIST_FILE = "../release.plist"
     private static final String CSV_FILE = "../releng/release_info.csv"
-    private static final String FF_FILE = "../featureflags/FF.csv"
+    private static final String FF_REMOTE_FILE = "featureflags/FF.csv"
+    private static final String FF_FILE = "../$FF_REMOTE_FILE"
     private static final String FF_DIFF_FILE = "../featureflags/FF_diff.csv"
 
     @Input
@@ -33,27 +34,33 @@ class GenerateFFDiffTask extends DefaultTask {
         File plist = project.file(PLIST_FILE)
         File featureFlagFile = project.file(FF_FILE)
         Release releases = ReleaseUtils.getPreviousRecord(releaseInfo, plist)
-        String branch = "${releases.prevName}/${releases.prevVersion}"
 
-        if (!GitUtils.hasRemoteBranch(branch, username, token)) {
-            println("Previous version's branch '$branch' does not exist. The diff will only contain current branch's feature flag contents.")
-            writeFile(featureFlagFile)
-            return
-        }
+        if (releases) {
+            String branch = "${releases.prevName}/${releases.prevVersion}"
 
-        String content = GitUtils.getContents(FF_FILE, branch, username, token)
-
-        if (content) {
-            try {
-                CSVParser currentFeatureFlags = CSVParser.parse(featureFlagFile, Charset.forName("UTF-8"), CSVFormat.DEFAULT)
-                CSVParser previousFeatureFlags = CSVParser.parse(content, CSVFormat.DEFAULT)
-
-                diffFiles(currentFeatureFlags, previousFeatureFlags, releases)
-                println("Successfully diffed current and previous feature flags.")
-            } catch (IOException e) {
-                throw new GradleException("There was a problem reading '$FF_FILE'. See stacktrace for details.", e)
+            if (!GitUtils.hasRemoteBranch(branch, username, token)) {
+                println("Previous version's branch '$branch' does not exist. The diff will only contain current branch's feature flag contents.")
+                writeFile(featureFlagFile)
+                return
             }
-        } else writeFile(featureFlagFile)
+
+            String content = GitUtils.getContents(FF_REMOTE_FILE, branch, username, token)
+
+            if (content) {
+                try {
+                    CSVParser currentFeatureFlags = CSVParser.parse(featureFlagFile, Charset.forName("UTF-8"), CSVFormat.DEFAULT)
+                    CSVParser previousFeatureFlags = CSVParser.parse(content, CSVFormat.DEFAULT)
+
+                    diffFiles(currentFeatureFlags, previousFeatureFlags, releases)
+                    println("Successfully diffed current and previous feature flags.")
+                } catch (IOException e) {
+                    throw new GradleException("There was a problem reading '$FF_FILE'. See stacktrace for details.", e)
+                }
+            } else writeFile(featureFlagFile)
+        } else {
+            println("There was no previous version. Diff will only contain current version's feature flag content.")
+            writeFile(featureFlagFile)
+        }
     }
 
     private void writeFile(File file) {
