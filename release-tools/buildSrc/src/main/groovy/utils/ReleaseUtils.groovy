@@ -49,16 +49,19 @@ class ReleaseUtils {
     }
 
     static void updateRelease(File plist, String name, String version) {
-        println("Attempting to update release <name/version> to <$name/$version>")
-
         Map release = parseReleasesFile(plist)
+        String oldName = release[RELEASE_NAME_KEY]
+        String oldVersion = release[RELEASE_VERSION_KEY]
+
+        println("Attempting to update release <name/version> from <$oldName/$oldVersion> to <$name/$version>")
+
         release[RELEASE_NAME_KEY] = name
         release[RELEASE_VERSION_KEY] = version
 
         String newPList = Plist.toXml(release)
 
         plist.write(newPList)
-        println("Successfully updated release <name/version> to <$name/$version>")
+        println("Successfully updated release <name/version> from <$oldName/$oldVersion> to <$name/$version>")
     }
 
     /**
