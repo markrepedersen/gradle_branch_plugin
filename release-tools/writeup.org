@@ -1,31 +1,3 @@
-* Preface
-  Since the requirements state that this must be able to run on MacOS (I'm using Linux on my development machine), I decided to containerize the project using Docker, since I didn't want to worry about possible environment issues for anyone who wants to run this.
-  Project dependencies are downloaded using Gradle, which also handles running the tasks which form the meat of this assignment.
-* Configuration
-  There are four Gradle tasks: *codeFreeze*, *cutBranch*, *updateReleaseVersion*, and *generateFFDiff*. *codeFreeze* is a task that runs (first cutBranch, followed by generateFFDiff, followed by updateReleaseVersion) all of these when an actual code freeze would be performed.
-  Running with '--stacktrace' will print a stacktrace for the error.
-  Each of them can be run using:
-
-#+begin_src bash
-  ./gradlew <task_name> [--stacktrace]
-#+end_src
-
-  By default, Docker runs these commands in a container, so there's no need to invoke any of the commands manually.
-  The container will mount the project directory and any changes that the Gradle tasks make inside the container will be reflected on the host's file system.
-  
-  To build and spin up the container, you can do:
-  
-  #+begin_src bash
-    cd <project_dir>/release-tools/docker
-    docker-compose up
-  #+end_src
-  
-* Assumptions
-  - I assumed these sorts of tasks (cutting branch, updating version, etc) would be performed using a build tool like Gradle, Maven, Bazel, etc instead of having a bash/python script that may or may not be called by Jenkins.
-  - I assumed that whoever uses this (Jenkins or an actual user) would provide a *gradle.properties* file in the *release-tools/* directory that contains two properties that are required to authenticate against GitHub: *github_username* and *github_token*.
-* Future Possible Sources of Error
-  - This uses a fair amount of external dependencies (Gradle, CSV/XML parsing libraries), each of which are well tested and well reviewed, but this is certainly a possible point of failure in the future
-  - Memory usage is relatively high, since each of the files (.plist, .csv) are loaded into memory entirely in order to parse them. I made the assumption that since these are configuration files, they won't grow very large, however, this may not necessarily be the case in a production environment.
 * Test Cases
   1. Tests for existence of resource files.
   2. Tests for when resource files are well formed.
