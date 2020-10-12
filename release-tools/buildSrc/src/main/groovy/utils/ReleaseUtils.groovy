@@ -36,16 +36,17 @@ class ReleaseUtils {
     }
 
     static Release getCurrRelease(File plist) {
+        println("Getting current release name and version...")
         Map release = parseReleasesFile(plist)
+        String name = release[RELEASE_NAME_KEY]
+        String version = release[RELEASE_VERSION_KEY]
 
-        if (release[RELEASE_NAME_KEY] == null || release[RELEASE_VERSION_KEY] == null) {
+        if (name == null || version == null) {
             throw new Exception("There was an error: '${plist.path}' does contains invalid keys.")
         }
 
-        new Release(
-                name: release[RELEASE_NAME_KEY],
-                version: release[RELEASE_VERSION_KEY],
-        )
+        println("Release name '$name' and version '$version' successfully retrieved.")
+        new Release(name: name, version: version)
     }
 
     static void updateRelease(File plist, String name, String version) {

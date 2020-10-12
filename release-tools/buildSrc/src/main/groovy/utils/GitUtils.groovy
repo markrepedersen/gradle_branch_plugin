@@ -67,6 +67,7 @@ class GitUtils {
         String url = "$API_BASE_URL/repos/$OWNER/$REPO/git/ref/heads/$branch"
 
         try {
+            println("Checking if branch '$branch' exists...")
             sendRequest(
                     url,
                     "GET",
