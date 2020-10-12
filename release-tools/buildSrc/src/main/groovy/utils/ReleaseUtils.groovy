@@ -15,7 +15,7 @@ class ReleaseUtils {
     static final String RELEASE_NAME_KEY = "SLKReleaseName"
     static final String RELEASE_VERSION_KEY = "CFBundleShortVersionString"
 
-    static parseReleasesFile(File file) {
+    static Map parseReleasesFile(File file) {
         trimLeadingSpaces(file)
 
         try {
@@ -35,24 +35,30 @@ class ReleaseUtils {
         file.write(contents)
     }
 
-    static Map getCurrRelease(File plist) {
+    static Release getCurrRelease(File plist) {
         Map release = parseReleasesFile(plist)
 
         if (release[RELEASE_NAME_KEY] == null || release[RELEASE_VERSION_KEY] == null) {
             throw new Exception("There was an error: '${plist.path}' does contains invalid keys.")
         }
 
-        release
+        new Release(
+                name: release[RELEASE_NAME_KEY],
+                version: release[RELEASE_VERSION_KEY],
+        )
     }
 
     static void updateRelease(File plist, String name, String version) {
-        Map currRelease = getCurrRelease(plist)
-        currRelease[RELEASE_NAME_KEY] = name
-        currRelease[RELEASE_VERSION_KEY] = version
+        println("Attempting to update release <name/version> to <$name/$version>")
 
-        String newPList = Plist.toXml(currRelease)
+        Map release = parseReleasesFile(plist)
+        release[RELEASE_NAME_KEY] = name
+        release[RELEASE_VERSION_KEY] = version
+
+        String newPList = Plist.toXml(release)
 
         plist.write(newPList)
+        println("Successfully updated release <name/version> to <$name/$version>")
     }
 
     /**
@@ -60,11 +66,9 @@ class ReleaseUtils {
      * @param name
      * @param version
      */
-    static Map getPreviousRecord(File csv, File plist) {
+    static Release getPreviousRecord(File csv, File plist) {
         CSVRecord prev = null
-        Map currRelease = getCurrRelease(plist)
-        String name = currRelease[RELEASE_NAME_KEY]
-        String version = currRelease[RELEASE_VERSION_KEY]
+        Release currRelease = getCurrRelease(plist)
         CSVParser parser = CSVParser.parse(
                 csv,
                 Charset.forName("UTF-8"),
@@ -72,13 +76,13 @@ class ReleaseUtils {
         )
 
         for (CSVRecord curr : parser) {
-            if (prev != null && curr.get(COLUMN_NAME_0) == name && curr.get(COLUMN_NAME_1) == version) {
-                return [
-                        curr_name: name,
-                        curr_version: version,
-                        prev_name: prev.get(COLUMN_NAME_0),
-                        prev_version: prev.get(COLUMN_NAME_1)
-                ]
+            if (prev != null && curr.get(COLUMN_NAME_0) == currRelease.name && curr.get(COLUMN_NAME_1) == currRelease.version) {
+                return new Release(
+                        name: currRelease.name,
+                        version: currRelease.version,
+                        prevName: prev.get(COLUMN_NAME_0),
+                        prevVersion: prev.get(COLUMN_NAME_1)
+                )
             }
             prev = curr
         }
@@ -91,11 +95,9 @@ class ReleaseUtils {
      * @param name
      * @param version
      */
-    static Map getNextRecord(File csv, File plist) {
+    static Release getNextRecord(File csv, File plist) {
         CSVRecord prev = null
-        Map currRelease = getCurrRelease(plist)
-        String name = currRelease[RELEASE_NAME_KEY]
-        String version = currRelease[RELEASE_VERSION_KEY]
+        Release currRelease = getCurrRelease(plist)
         CSVParser parser = CSVParser.parse(
                 csv,
                 Charset.forName("UTF-8"),
@@ -103,13 +105,13 @@ class ReleaseUtils {
         )
 
         for (CSVRecord next : parser) {
-            if (prev != null && prev.get(COLUMN_NAME_0) == name && prev.get(COLUMN_NAME_1) == version) {
-                return [
-                        curr_name: name,
-                        curr_version: version,
-                        next_name: next.get(COLUMN_NAME_0),
-                        next_version: next.get(COLUMN_NAME_1)
-                ]
+            if (prev != null && prev.get(COLUMN_NAME_0) == currRelease.name && prev.get(COLUMN_NAME_1) == currRelease.version) {
+                return new Release(
+                        name: currRelease.name,
+                        version: currRelease.version,
+                        nextName: next.get(COLUMN_NAME_0),
+                        nextVersion: next.get(COLUMN_NAME_1)
+                )
             }
             prev = next
         }

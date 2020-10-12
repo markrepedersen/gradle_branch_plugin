@@ -3,6 +3,7 @@ package tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
+import utils.Release
 import utils.ReleaseUtils
 import xmlwise.XmlParseException
 
@@ -23,13 +24,13 @@ class UpdateReleaseVersionTask extends DefaultTask {
     void run() {
         try {
             File pListFile = project.file(PLIST_FILE)
-            Map nextRelease = ReleaseUtils.getNextRecord(project.file(CSV_FILE), pListFile)
+            Release nextRelease = ReleaseUtils.getNextRecord(project.file(CSV_FILE), pListFile)
 
             if (nextRelease == null) {
                 throw new Exception("There is no new version available.")
             }
 
-            ReleaseUtils.updateRelease(pListFile, nextRelease.next_name as String, nextRelease.next_version as String)
+            ReleaseUtils.updateRelease(pListFile, nextRelease.nextName, nextRelease.nextVersion)
         } catch (Exception e) {
             if (e instanceof IOException || e instanceof XmlParseException) {
                 throw new GradleException("There was an error parsing one of '$PLIST_FILE' or '$CSV_FILE'. Please verify.", e)

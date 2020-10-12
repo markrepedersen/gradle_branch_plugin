@@ -27,12 +27,15 @@ class GitUtils {
 
         if (hash) {
             try {
+                println("Attempting to create branch with name '$newBranch' from '$fromBranch'.")
                 sendRequest(url, "POST", [
                         username: username,
                         token   : token,
                         headers : ["Content-Type": "application/json"],
                         body    : [ref: "refs/heads/$newBranch", sha: hash]
                 ])
+
+                println("Branch '$newBranch' was successfully created.")
             } catch (Exception e) {
                 throw new GradleException("There was a problem while sending request to GitHub due to error.", e)
             }
@@ -43,11 +46,15 @@ class GitUtils {
         String url = "$API_BASE_URL/repos/$OWNER/$REPO/git/refs/heads/$branch"
 
         try {
-            String hash = sendRequest(url, "GET", [username: username, token: token])
-            JsonSlurper slurper = new JsonSlurper()
-            Object json = slurper.parseText(hash)
+            println("Attempting to retrieve ref from branch '$branch'.")
+            HttpsURLConnection conn = sendRequest(url, "GET", [username: username, token: token])
+            String json = conn.inputStream.text
 
-            json?.object?.sha
+            JsonSlurper slurper = new JsonSlurper()
+            String hash = slurper.parseText(json)?.object?.sha
+
+            println("Successfully retrieved ref: '$hash'.")
+            hash
         } catch (Exception e) {
             throw new GradleException("There was a problem getting the ref.", e)
         }
@@ -75,7 +82,6 @@ class GitUtils {
             System.err.println("No remote branch found due to invalid response: $e")
             false
         }
-
     }
 
     /**
@@ -87,7 +93,8 @@ class GitUtils {
         String url = "$API_BASE_URL/repos/$OWNER/$REPO/contents/$path?ref=$branch"
 
         try {
-            return sendRequest(
+            println("Attempting to retrieve file contents for '$path' from branch '$branch'.")
+            HttpsURLConnection conn = sendRequest(
                     url,
                     "GET",
                     [
@@ -96,6 +103,9 @@ class GitUtils {
                             headers : ["Accept": "application/vnd.github.v3.raw"]
                     ]
             )
+            println("Successfully retrieved '$path' from branch '$branch'.")
+
+            conn.inputStream.text
         } catch (IOException e) {
             System.err.println("Feature Flag contents from previous release could not be found: ${e.toString()}")
             return null
@@ -142,8 +152,10 @@ class GitUtils {
         }
 
         if (conn.responseCode < 200 || conn.responseCode > 299) {
-            throw new Error("Request returned with code '${conn.responseCode}': ${conn.responseMessage}.")
+            throw new Exception("Request returned with code ${conn.responseCode}: ${conn.responseMessage}.")
         }
+
+        println("Request returned successfully with response code ${conn.responseCode} and message '${conn.responseMessage}'.")
 
         conn
     }

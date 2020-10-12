@@ -8,6 +8,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import utils.GitUtils
+import utils.Release
 import utils.ReleaseUtils
 
 import java.nio.charset.Charset
@@ -26,14 +27,18 @@ class GenerateFFDiffTask extends DefaultTask {
 
     @TaskAction
     void run() {
+        println("Attempting to diff current and previous feature flags.")
+
         File releaseInfo = project.file(CSV_FILE)
         File plist = project.file(PLIST_FILE)
         File featureFlagFile = project.file(FF_FILE)
-        Map releases = ReleaseUtils.getPreviousRecord(releaseInfo, plist)
-        String branch = "${releases.prev_name}/${releases.prev_version}"
+        Release releases = ReleaseUtils.getPreviousRecord(releaseInfo, plist)
+        String branch = "${releases.prevName}/${releases.prevVersion}"
 
         if (!GitUtils.hasRemoteBranch(branch, username, token)) {
-            throw new GradleException("Branch '$branch' does not exist.")
+            println("Previous version's branch '$branch' does not exist. The diff will only contain current branch's feature flag contents.")
+            writeFile(featureFlagFile)
+            return
         }
 
         String content = GitUtils.getContents(FF_FILE, branch, username, token)
@@ -44,15 +49,18 @@ class GenerateFFDiffTask extends DefaultTask {
                 CSVParser previousFeatureFlags = CSVParser.parse(content, CSVFormat.DEFAULT)
 
                 diffFiles(currentFeatureFlags, previousFeatureFlags, releases)
+                println("Successfully diffed current and previous feature flags.")
             } catch (IOException e) {
                 throw new GradleException("There was a problem reading '$FF_FILE'. See stacktrace for details.", e)
             }
-        } else {
-            try {
-                project.file(FF_DIFF_FILE).write(featureFlagFile.text)
-            } catch (IOException e) {
-                throw new GradleException("There was an error writing to $FF_DIFF_FILE.", e)
-            }
+        } else writeFile(featureFlagFile)
+    }
+
+    private void writeFile(File file) {
+        try {
+            project.file(FF_DIFF_FILE).write(file.text)
+        } catch (IOException e) {
+            throw new GradleException("There was an error writing to $FF_DIFF_FILE.", e)
         }
     }
 
@@ -63,11 +71,11 @@ class GenerateFFDiffTask extends DefaultTask {
      * @param previous
      * @param info
      */
-    void diffFiles(CSVParser current, CSVParser previous, Map info) throws IOException {
+    void diffFiles(CSVParser current, CSVParser previous, Release info) throws IOException {
         project.file(FF_DIFF_FILE).withWriter {
             HashMap<String, String> map = new HashMap<>()
-            String header1 = "${info.curr_name}/${info.curr_version}"
-            String header2 = "${info.prev_name}/${info.prev_version}"
+            String header1 = "${info.name}/${info.version}"
+            String header2 = "${info.prevName}/${info.prevVersion}"
             CSVFormat format = CSVFormat.DEFAULT.withHeader(
                     "[${header1}]_name",
                     "[${header1}]_version",

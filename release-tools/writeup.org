@@ -1,0 +1,48 @@
+* Preface
+  Since the requirements state that this must be able to run on MacOS (I'm using Linux on my development machine), I decided to containerize the project using Docker, since I didn't want to worry about possible environment issues for anyone who wants to run this.
+  Project dependencies are downloaded using Gradle, which also handles running the tasks which form the meat of this assignment.
+  I also added log statements in many places, since on CI servers it's useful to see log statements when debugging.
+* Configuration
+  There are three Gradle tasks: *cutBranch*, *updateReleaseVersion*, and *generateFFDiff*. Each of them can be run using
+
+#+begin_src bash
+  ./gradlew <task_name> [--stacktrace]
+#+end_src
+
+  By default, Docker runs these commands in a container, so there's no need to invoke any of the commands manually.
+  The container will mount the project directory and any changes that the Gradle tasks make inside the container will be reflected on the host's file system.
+  
+  To build and spin up the container, you can do:
+  
+  #+begin_src bash
+    cd <project_dir>/release-tools/docker
+    docker-compose up
+  #+end_src
+  
+* Assumptions
+  - I assumed these sorts of tasks (cutting branch, updating version, etc) would be performed using a build tool like Gradle, Maven, Bazel, etc instead of having a bash/python script that may or may not be called by Jenkins.
+  - I assumed that whoever uses this (Jenkins or an actual user) would provide a *gradle.properties* file in the *release-tools/* directory that contains two properties that are required to authenticate against GitHub: *github_username* and *github_token*.
+* Future Possible Sources of Error
+  - This uses a fair amount of external dependencies (Gradle, CSV/XML parsing libraries), each of which are well tested and well reviewed, but this is certainly a possible point of failure in the future
+  - Memory usage is relatively high, since each of the files (.plist, .csv) are loaded into memory entirely in order to parse them. I made the assumption that since these are configuration files, they won't grow very large, however, this may not necessarily be the case in a production environment.
+* Test Cases
+  1. Tests for existence of resource files.
+  2. Tests for when resource files are well formed.
+  3. Tests for when resource files are NOT well formed:
+     - file contains leading newline/spaces
+     - file is empty
+     - file does not contain name and/or version
+  4. Test for when both feature flag files are the same
+  5. Test for when both feature flag files are NOT the same:
+     - one is different
+     - both are different
+  6. Test for when one feature flag file exists and the other one was deleted
+  7. Test for when both feature flag files were deleted
+  8. Test when current name/version is the FIRST entry in *release_info.csv* -> no previous version, so can't lookup FF.csv from previous ref -> output meaningful message
+  9. Test when current name/version is the LAST entry in *release_info.csv* -> there is no next version, so update should fail with meaningful message
+  10. Tests for Git operations:
+     - test that remote branch exists (name according to release name and release version) -> if not throw exception with meaningful message
+     - test that response code is valid when sending GitHub API request -> if not throw exception with meaningful message
+     - test that file exists from ref -> if not throw exception with meaningful message
+     - test that API requests return valid responses -> if not then output meaningful message
+
