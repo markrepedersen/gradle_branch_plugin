@@ -27,6 +27,6 @@ class CutBranchTask extends DefaultTask {
             if (!GitUtils.hasRemoteBranch(branch, username, token)) {
                 GitUtils.createBranch(BASE_BRANCH, branch, username, token)
             } else throw new GradleException("The branch '$branch' already exists.")
-        } else throw new GradleException("There is no next <name/version> for cutting the branch.")
+        } else throw new GradleException("There is no current <name/version> for cutting the branch.")
     }
 }
