@@ -21,8 +21,8 @@ class CutBranchTask extends DefaultTask {
     void run() {
         Release releases = ReleaseUtils.getRelease(project.file(ReleaseUtils.PLIST_FILE), project.file(ReleaseUtils.CSV_FILE))
 
-        if (releases && releases.nextName && releases.nextVersion) {
-            String branch = "${releases.nextName}/${releases.nextVersion}"
+        if (releases && releases.name && releases.version) {
+            String branch = "${releases.name}/${releases.version}"
 
             if (!GitUtils.hasRemoteBranch(branch, username, token)) {
                 GitUtils.createBranch(BASE_BRANCH, branch, username, token)
