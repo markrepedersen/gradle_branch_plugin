@@ -50,7 +50,7 @@ class ReleaseUtils {
                 res.prevName = prev.get(COLUMN_NAME_0)
                 res.prevVersion = prev.get(COLUMN_NAME_1)
             }
-            if (prev.get(COLUMN_NAME_0) == res.name && prev.get(COLUMN_NAME_1) == res.version) {
+            if (prev != null && prev.get(COLUMN_NAME_0) == res.name && prev.get(COLUMN_NAME_1) == res.version) {
                 res.nextName = curr.get(COLUMN_NAME_0)
                 res.nextVersion = curr.get(COLUMN_NAME_1)
             }

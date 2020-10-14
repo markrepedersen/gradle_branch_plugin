@@ -14,7 +14,7 @@
   6. Test for when one feature flag file exists and the other one was deleted
   7. Test for when both feature flag files were deleted
   8. Test when current name/version is the FIRST entry in *release_info.csv* -> no previous version, so can't lookup FF.csv from previous ref -> output meaningful message
-  9. Test when current name/version is the LAST entry in *release_info.csv* -> there is no next version, so update should fail with meaningful message
+  9. Test when current name/version is the LAST entry in *release_info.csv* -> there is no next version, so updating project name/version should fail with meaningful message
 
 ** Integration Tests     
   Integration tests at the function level, not the task level. This may be done by mocking the GitHub server so that the tests don't fail if GitHub were to go down. One downside of mocking in this case would be if the endpoints were to ever change. This could be dealt with by an API endpoint translation service or a proxy service by something such as Confluent (see https://github.com/confluentinc/mox) that will proxy endpoints that work, and mock endpoints that do NOT.

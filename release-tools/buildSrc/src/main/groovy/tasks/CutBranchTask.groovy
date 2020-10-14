@@ -19,11 +19,14 @@ class CutBranchTask extends DefaultTask {
 
     @TaskAction
     void run() {
-        Release currRelease = ReleaseUtils.getRelease(project.file(ReleaseUtils.PLIST_FILE), project.file(ReleaseUtils.CSV_FILE))
-        String branch = "${currRelease.name}/${currRelease.version}"
+        Release releases = ReleaseUtils.getRelease(project.file(ReleaseUtils.PLIST_FILE), project.file(ReleaseUtils.CSV_FILE))
 
-        if (!GitUtils.hasRemoteBranch(branch, username, token)) {
-            GitUtils.createBranch(BASE_BRANCH, branch, username, token)
-        } else throw new GradleException("The branch '$branch' already exists.")
+        if (releases && releases.nextName && releases.nextVersion) {
+            String branch = "${releases.nextName}/${releases.nextVersion}"
+
+            if (!GitUtils.hasRemoteBranch(branch, username, token)) {
+                GitUtils.createBranch(BASE_BRANCH, branch, username, token)
+            } else throw new GradleException("The branch '$branch' already exists.")
+        } else throw new GradleException("There is no next <name/version> for cutting the branch.")
     }
 }

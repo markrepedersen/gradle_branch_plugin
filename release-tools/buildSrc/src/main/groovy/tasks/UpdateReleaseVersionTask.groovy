@@ -23,12 +23,12 @@ class UpdateReleaseVersionTask extends DefaultTask {
             File pListFile = project.file(ReleaseUtils.PLIST_FILE)
             Release releaseInfo = ReleaseUtils.getRelease(pListFile, project.file(ReleaseUtils.CSV_FILE))
 
-            if (releaseInfo) {
+            if (releaseInfo && releaseInfo.nextName && releaseInfo.nextVersion) {
                 ReleaseUtils.updateRelease(pListFile, releaseInfo.nextName, releaseInfo.nextVersion)
             } else throw new Exception("There is no new version available.")
         } catch (Exception e) {
             if (e instanceof IOException || e instanceof XmlParseException) {
-                throw new GradleException("There was an error parsing one of '$PLIST_FILE' or '$CSV_FILE'. Please verify.", e)
+                throw new GradleException("There was an error parsing one of '${ReleaseUtils.PLIST_FILE}' or '${ReleaseUtils.CSV_FILE}'. Please verify.", e)
             } else {
                 throw e
             }

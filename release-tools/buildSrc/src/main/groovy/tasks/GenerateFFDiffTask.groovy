@@ -32,9 +32,9 @@ class GenerateFFDiffTask extends DefaultTask {
         File releaseInfo = project.file(ReleaseUtils.CSV_FILE)
         File plist = project.file(ReleaseUtils.PLIST_FILE)
         File featureFlagFile = project.file(FF_FILE)
-        Release releases = ReleaseUtils.getRelease(releaseInfo, plist)
+        Release releases = ReleaseUtils.getRelease(plist, releaseInfo)
 
-        if (releases) {
+        if (releases && releases.prevName && releases.prevVersion) {
             String branch = "${releases.prevName}/${releases.prevVersion}"
 
             if (!GitUtils.hasRemoteBranch(branch, username, token)) {

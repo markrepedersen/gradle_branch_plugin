@@ -80,7 +80,7 @@ class GitUtils {
 
             true
         } catch (Exception e) {
-            System.err.println("No remote branch found due to invalid response: $e")
+            System.err.println("No remote branch found named '$branch' due to invalid response: $e")
             false
         }
     }
