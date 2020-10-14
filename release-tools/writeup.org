@@ -1,4 +1,5 @@
 * Test Cases
+  Unit tests:
   1. Tests for existence of resource files.
   2. Tests for when resource files are well formed.
   3. Tests for when resource files are NOT well formed:
@@ -19,3 +20,6 @@
      - test that file exists from ref -> if not throw exception with meaningful message
      - test that API requests return valid responses -> if not then output meaningful message
 
+
+  Integration Tests:
+  1. 

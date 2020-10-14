@@ -10,7 +10,6 @@ import utils.ReleaseUtils
 
 class CutBranchTask extends DefaultTask {
     private static final BASE_BRANCH = "master"
-    private static final String PLIST_FILE = "../release.plist"
 
     @Input
     protected String username = project.property(GitUtils.GITHUB_USERNAME_KEY)
@@ -20,7 +19,7 @@ class CutBranchTask extends DefaultTask {
 
     @TaskAction
     void run() {
-        Release currRelease = ReleaseUtils.getCurrRelease(project.file(PLIST_FILE))
+        Release currRelease = ReleaseUtils.getRelease(project.file(ReleaseUtils.PLIST_FILE), project.file(ReleaseUtils.CSV_FILE))
         String branch = "${currRelease.name}/${currRelease.version}"
 
         if (!GitUtils.hasRemoteBranch(branch, username, token)) {

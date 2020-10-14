@@ -12,6 +12,8 @@ class ReleaseUtils {
     private static final String COLUMN_NAME_0 = "rls_name"
     private static final String COLUMN_NAME_1 = "rls_ver"
 
+    static final String PLIST_FILE = "../release.plist"
+    static final String CSV_FILE = "../releng/release_info.csv"
     static final String RELEASE_NAME_KEY = "SLKReleaseName"
     static final String RELEASE_VERSION_KEY = "CFBundleShortVersionString"
 
@@ -26,27 +28,36 @@ class ReleaseUtils {
     }
 
     /**
-     * Trims any leading whitespace/newline characters in the given file.
-     * NOTE: XML parsing is Java doesn't work when there are leading newline characters/spaces, so this is needed
-     * in order to handle this case.
+     * Gets the (current, previous, and next) release name and versions.
+     * @param plist
+     * @param csv
      */
-    private static void trimLeadingSpaces(File file) {
-        String contents = file.withReader { it.text.trim() }
-        file.write(contents)
-    }
-
-    static Release getCurrRelease(File plist) {
-        println("Getting current release name and version...")
+    static Release getRelease(File plist, File csv) {
+        Release res = new Release()
         Map release = parseReleasesFile(plist)
-        String name = release[RELEASE_NAME_KEY]
-        String version = release[RELEASE_VERSION_KEY]
 
-        if (name == null || version == null) {
+        res.name = release[RELEASE_NAME_KEY]
+        res.version = release[RELEASE_VERSION_KEY]
+
+        if (res.name == null || res.version == null) {
             throw new Exception("There was an error: '${plist.path}' does contains invalid keys.")
         }
 
-        println("Release name '$name' and version '$version' successfully retrieved.")
-        new Release(name: name, version: version)
+        CSVRecord prev = null
+
+        for (CSVRecord curr : parseCsv(csv)) {
+            if (prev != null && curr.get(COLUMN_NAME_0) == res.name && curr.get(COLUMN_NAME_1) == res.version) {
+                res.prevName = prev.get(COLUMN_NAME_0)
+                res.prevVersion = prev.get(COLUMN_NAME_1)
+            }
+            if (prev.get(COLUMN_NAME_0) == res.name && prev.get(COLUMN_NAME_1) == res.version) {
+                res.nextName = curr.get(COLUMN_NAME_0)
+                res.nextVersion = curr.get(COLUMN_NAME_1)
+            }
+            prev = curr
+        }
+
+        res
     }
 
     static void updateRelease(File plist, String name, String version) {
@@ -66,60 +77,20 @@ class ReleaseUtils {
     }
 
     /**
-     * Get the previous release (name, version).
-     * @param name
-     * @param version
+     * Trims any leading whitespace/newline characters in the given file.
+     * NOTE: XML parsing is Java doesn't work when there are leading newline characters/spaces, so this is needed
+     * in order to handle this case.
      */
-    static Release getPreviousRecord(File csv, File plist) {
-        CSVRecord prev = null
-        Release currRelease = getCurrRelease(plist)
-        CSVParser parser = CSVParser.parse(
-                csv,
-                Charset.forName("UTF-8"),
-                CSVFormat.DEFAULT.withHeader()
-        )
-
-        for (CSVRecord curr : parser) {
-            if (prev != null && curr.get(COLUMN_NAME_0) == currRelease.name && curr.get(COLUMN_NAME_1) == currRelease.version) {
-                return new Release(
-                        name: currRelease.name,
-                        version: currRelease.version,
-                        prevName: prev.get(COLUMN_NAME_0),
-                        prevVersion: prev.get(COLUMN_NAME_1)
-                )
-            }
-            prev = curr
-        }
-
-        return null
+    private static void trimLeadingSpaces(File file) {
+        String contents = file.withReader { it.text.trim() }
+        file.write(contents)
     }
 
-    /**
-     * Get the next release (name, version) from a given (name, version).
-     * @param name
-     * @param version
-     */
-    static Release getNextRecord(File csv, File plist) {
-        CSVRecord prev = null
-        Release currRelease = getCurrRelease(plist)
-        CSVParser parser = CSVParser.parse(
+    private static CSVParser parseCsv(File csv) {
+        CSVParser.parse(
                 csv,
                 Charset.forName("UTF-8"),
                 CSVFormat.DEFAULT.withHeader()
         )
-
-        for (CSVRecord next : parser) {
-            if (prev != null && prev.get(COLUMN_NAME_0) == currRelease.name && prev.get(COLUMN_NAME_1) == currRelease.version) {
-                return new Release(
-                        name: currRelease.name,
-                        version: currRelease.version,
-                        nextName: next.get(COLUMN_NAME_0),
-                        nextVersion: next.get(COLUMN_NAME_1)
-                )
-            }
-            prev = next
-        }
-
-        return null
     }
 }

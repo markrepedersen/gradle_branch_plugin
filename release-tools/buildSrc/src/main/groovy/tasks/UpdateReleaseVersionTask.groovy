@@ -8,9 +8,6 @@ import utils.ReleaseUtils
 import xmlwise.XmlParseException
 
 class UpdateReleaseVersionTask extends DefaultTask {
-    private static final String PLIST_FILE = "../release.plist"
-    private static final String CSV_FILE = "../releng/release_info.csv"
-
     /**
      * Reads the current release (name, version) and replaces it with the next one.
      *
@@ -23,11 +20,11 @@ class UpdateReleaseVersionTask extends DefaultTask {
     @TaskAction
     void run() {
         try {
-            File pListFile = project.file(PLIST_FILE)
-            Release nextRelease = ReleaseUtils.getNextRecord(project.file(CSV_FILE), pListFile)
+            File pListFile = project.file(ReleaseUtils.PLIST_FILE)
+            Release releaseInfo = ReleaseUtils.getRelease(pListFile, project.file(ReleaseUtils.CSV_FILE))
 
-            if (nextRelease) {
-                ReleaseUtils.updateRelease(pListFile, nextRelease.nextName, nextRelease.nextVersion)
+            if (releaseInfo) {
+                ReleaseUtils.updateRelease(pListFile, releaseInfo.nextName, releaseInfo.nextVersion)
             } else throw new Exception("There is no new version available.")
         } catch (Exception e) {
             if (e instanceof IOException || e instanceof XmlParseException) {

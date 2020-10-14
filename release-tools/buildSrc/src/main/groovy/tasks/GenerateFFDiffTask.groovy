@@ -14,11 +14,10 @@ import utils.ReleaseUtils
 import java.nio.charset.Charset
 
 class GenerateFFDiffTask extends DefaultTask {
-    private static final String PLIST_FILE = "../release.plist"
-    private static final String CSV_FILE = "../releng/release_info.csv"
-    private static final String FF_REMOTE_FILE = "featureflags/FF.csv"
+    private static final String FF_DIR = "featureflags"
+    private static final String FF_REMOTE_FILE = "$FF_DIR/FF.csv"
     private static final String FF_FILE = "../$FF_REMOTE_FILE"
-    private static final String FF_DIFF_FILE = "../featureflags/FF_diff.csv"
+    private static final String FF_DIFF_FILE = "../$FF_DIR/FF_diff.csv"
 
     @Input
     protected String username = project.property(GitUtils.GITHUB_USERNAME_KEY)
@@ -30,10 +29,10 @@ class GenerateFFDiffTask extends DefaultTask {
     void run() {
         println("Attempting to diff current and previous feature flags.")
 
-        File releaseInfo = project.file(CSV_FILE)
-        File plist = project.file(PLIST_FILE)
+        File releaseInfo = project.file(ReleaseUtils.CSV_FILE)
+        File plist = project.file(ReleaseUtils.PLIST_FILE)
         File featureFlagFile = project.file(FF_FILE)
-        Release releases = ReleaseUtils.getPreviousRecord(releaseInfo, plist)
+        Release releases = ReleaseUtils.getRelease(releaseInfo, plist)
 
         if (releases) {
             String branch = "${releases.prevName}/${releases.prevVersion}"
