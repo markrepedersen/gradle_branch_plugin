@@ -1,6 +1,3 @@
-* Preface
-  In order to support multiple different operation systems, this project uses Docker. Project dependencies are downloaded using Gradle, which also handles running the tasks which form the meat of this assignment.
-  Gradle is being used because it's a highly maintained build tool with a lot of open source documentation. It's quite fast and has remote build cache support as well as incremental compilation and other very nice features.
 * Setup
   Make sure your Docker/docker-compose versions are up-to-date. To be safe, I'd try matching my version below.
   
@@ -169,10 +166,3 @@ Flag_C,ON,Flag_C,OFF
   - GitUtils: this class is a wrapper for Git related API requests.
   - ReleaseUtils: this class contains some methods for querying for release information from the provided .plist and .csv files.
   - Release: a class that represents a release with a name and version, previous name and version, and next name and version. This is useful to store the information so the information isn't queried many times.
-
-* Assumptions
-  - I assumed these sorts of tasks (cutting branch, updating version, etc) would be performed using a build tool like Gradle, Maven, Bazel, etc instead of having a bash/python script that may or may not be called by Jenkins.
-  - I assumed that whoever uses this (Jenkins or an actual user) would provide a *gradle.properties* file in the *release-tools/* directory that contains two properties that are required to authenticate against GitHub.
-* Future Possible Sources of Error
-  - This uses a fair amount of external dependencies (Gradle, CSV/XML parsing libraries), each of which are well tested and well reviewed, but this is certainly a possible point of failure in the future
-  - Memory usage is relatively high, since each of the files (.plist, .csv) are loaded into memory entirely in order to parse them. I made the assumption that since these are configuration files, they won't grow very large, however, this may not necessarily be the case in a production environment.

@@ -1,5 +1,5 @@
 FROM gradle:jdk14
 
-WORKDIR /usr/slack_assessment/release-tools
+WORKDIR /usr/slack_assessment
 
 ENTRYPOINT gradle codeFreeze
