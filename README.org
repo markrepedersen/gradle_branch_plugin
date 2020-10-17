@@ -9,17 +9,9 @@
   - Java version: 14.0
 
 ** Steps    
-  - Clone the repository and checkout the *dev* branch:
-    #+begin_src bash
-      git clone git@github.com:SlackRecruiting/br-code-exercise-170536289.git
-
-      cd <project_name>
-
-      git checkout dev
-    #+end_src
   - Create a *gradle.properties* file with your credentials (for GitHub API requests), replacing the words inside the brackets with your credentials. You can find out how to generate an API token here: https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token.
     #+begin_src bash
-      cd <project_dir>/release-tools
+      cd <project_dir>
 
       # This is your GitHub username
       echo "github_username=<username>" >> gradle.properties
@@ -30,7 +22,7 @@
     
   - Run the Docker container (make sure you're using an updated version of Docker at least according to the specs I wrote above).     This will then run the container, which runs each of the three tasks. The result of this will be a newly created branch, an updated project name/version, and a new feature flag diff.
     #+begin_src bash
-cd <project_dir>/release-tools/docker
+cd <project_dir>/docker
 
 docker-compose up
     #+end_src
@@ -41,7 +33,7 @@ The resulting build, if successful, should look like the following (docker-compo
 Building dev
 Step 1/3 : FROM gradle:jdk14
  ---> cc5784080a16
-Step 2/3 : WORKDIR /usr/slack_assessment/release-tools
+Step 2/3 : WORKDIR /usr/slack_assessment
  ---> Using cache
  ---> 99fbc93d3bdb
 Step 3/3 : ENTRYPOINT gradle codeFreeze
@@ -106,10 +98,10 @@ docker_dev_1 exited with code 0
 
 ** Running Tasks
    In order to run a specific task, you can do either of the following:
-  1. Docker only: You'll need to change the Dockerfile. On line 5 of *<project dir>/release-tools/docker/Dockerfile/* you'll find the entrypoint command that executes when the container is run. Change it to which ever task you'd like to run and then rebuild the image like below. *Adding --stacktrace to the Gradle command will give you a stacktrace that will aid in debugging*
+  1. Docker only: You'll need to change the Dockerfile. On line 5 of *<project dir>/docker/Dockerfile/* you'll find the entrypoint command that executes when the container is run. Change it to which ever task you'd like to run and then rebuild the image like below. *Adding --stacktrace to the Gradle command will give you a stacktrace that will aid in debugging*
 
 #+begin_src bash
-cd <root dir>/release-tools/docker
+cd <root dir>/docker
 
 # You'll need to rebuild the image
 docker-compose up --build
@@ -117,7 +109,7 @@ docker-compose up --build
 
   2. Without Docker (you'll need Gradle, Java, etc to be able to run): You can run commands inside the Gradle project.
 #+begin_src bash
-cd <project dir>/release-tools/
+cd <project dir>
 
 # Replace task name with your desired task. Note the optional stacktrace flag.
 ./gradlew <task name> [--stacktrace]
@@ -127,7 +119,7 @@ cd <project dir>/release-tools/
   - Check the correct version of Docker is being used. See the versions that I'm using to make sure you're compatible.
   - Make sure Docker is running (this actually happens to me relatively frequently)
   - Make sure you have a functioning internet connection, since requests to GitHub are being made. You can curl -u<username:token> https://api.github.com/repos/SlackRecruiting/br-code-exercise-170536289/git/refs/heads/master or other GitHub API endpoints to see if it's the application or the server failing.
-  - No credentials file was added, in which case requests to GitHub will fail with "HTTP 404: Not Found" errors. Make sure that this file is put under the *release-tools* directory, since this is where Gradle looks for it.
+  - No credentials file was added, in which case requests to GitHub will fail with "HTTP 404: Not Found" errors.
   - *Adding --stacktrace to the Gradle command will give you a stacktrace that will aid in debugging*
 * Architecture
 ** Directory Hierarchy  
@@ -158,8 +150,8 @@ Flag_C,ON,Flag_C,OFF
   - UpdateReleaseVersionTask: The task class will update the project's name and version to the next one. In case that the "releases.csv" file does not contain a next one (e.g. when the current version is the last), then a task exception will be thrown.
 
 ** Plugin classes    
-  The task classes are then registered to the plugin in *buildSrc/src/main/groovy/plugins/CodeFreezePlugin.groovy*. This plugin is then registered as a plugin in the main project *release-tools/build.gradle*.
-  This means that the tasks are able to be used in the main project (e.g. someone can do 'gradle cutBranch' from the *release-tools/* directory).
+  The task classes are then registered to the plugin in *buildSrc/src/main/groovy/plugins/CodeFreezePlugin.groovy*. This plugin is then registered as a plugin in the main project *build.gradle*.
+  This means that the tasks are able to be used in the main project (e.g. someone can do 'gradle cutBranch' from parent directory).
 
 ** Utility classes
   There are also some utility classes (defined in *buildSrc/src/main/groovy/utils/*):
